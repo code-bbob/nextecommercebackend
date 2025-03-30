@@ -1,0 +1,29 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+db.sqlite3
+local_settings.py
+
+# Migrations
+*/migrations/
+
+# Virtual environment
+env/
+venv/
+ENV/
+VENV/
+
+# pycache and egg-info directories
+*.egg-info/
+.eggs/
+
+# Static and media files (if collected)
+staticfiles/
+media/
+
+# VS Code settings
+.vscode/

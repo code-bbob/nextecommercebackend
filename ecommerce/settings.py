@@ -132,6 +132,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
 
 # STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static_cdn")
 
@@ -142,7 +143,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 #added to manage media
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = 'media/'
 
 AUTH_USER_MODEL = 'userauth.User'
@@ -217,5 +219,46 @@ CKEDITOR_CONFIGS = {
 }
 
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = '/static/'
+
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+
+# Tell django-storages to use the S3Boto3 backend:
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": 'DO801PV3PZ7ZJQ8JKZZJ',
+            "secret_key": 'giHf/7mqvABSQhF1mXg0b9RVcNLDBCLgN0DNR91hNZM',
+            "bucket_name": 'digitech-ecommerce',
+            "endpoint_url": "https://blr1.digitaloceanspaces.com",
+            "location":'media',
+            "default_acl": "private",
+            "custom_domain": 'digitech-ecommerce.blr1.digitaloceanspaces.com',
+        }
+    },
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": 'DO801PV3PZ7ZJQ8JKZZJ',
+            "secret_key": 'giHf/7mqvABSQhF1mXg0b9RVcNLDBCLgN0DNR91hNZM',
+            "bucket_name": 'digitech-ecommerce',
+            "endpoint_url": "https://blr1.digitaloceanspaces.com",
+            "location":'static',
+            "default_acl": "public-read",
+            "custom_domain": 'digitech-ecommerce.blr1.digitaloceanspaces.com',
+        }
+    },
+}
+#okay
+
+# You can also configure additional options if needed:
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+

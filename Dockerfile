@@ -36,6 +36,10 @@ RUN pip install --no-cache-dir --no-deps /wheels/* && \
 # Copy project files
 COPY . .
 
+# Copy and set permissions for entrypoint script
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
 # Create directories for static and media files
 RUN mkdir -p /app/static /app/media
 

@@ -65,6 +65,12 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://api.youthtech.com.np',
+    # Add any other trusted origins here
+]
+
+
 ROOT_URLCONF = 'ecommerce.urls'
 
 TEMPLATES = [

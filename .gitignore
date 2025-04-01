@@ -27,3 +27,9 @@ media/
 
 # VS Code settings
 .vscode/
+
+# Docker Volumes
+volumes/
+
+# Environment variables
+.env

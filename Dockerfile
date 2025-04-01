@@ -37,13 +37,11 @@ RUN pip install --no-cache-dir --no-deps /wheels/* && \
 COPY . .
 
 # Copy and set permissions for entrypoint script
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh && \
+    sed -i 's/\r$//g' /entrypoint.sh
 
 # Create directories for static and media files
 RUN mkdir -p /app/static /app/media
 
-# Create a non-root user
-# RUN useradd -m appuser && \
-#     chown -R appuser:appuser /app
-# USER appuser
+ENTRYPOINT ["/entrypoint.sh"]

@@ -19,7 +19,6 @@ services:
 
   web:
     build: .
-    command: sh -c "./entrypoint.sh"
     volumes:
       - .:/app
       - ./volumes/static_volume:/app/static

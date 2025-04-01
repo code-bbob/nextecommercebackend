@@ -13,6 +13,7 @@ class Product(models.Model):
     # product_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product_id = models.SlugField(primary_key=True, unique=True,blank=True,editable=False)
     name = models.CharField(max_length=200)
+    seo_friendly_name = models.CharField(max_length=200, blank=True, null=True)
     emi = models.BooleanField(default=False)
     category = models.ForeignKey('Category', on_delete=models.CASCADE,null=True, related_name='products')
     sub_category = models.ForeignKey('SubCategory', on_delete=models.CASCADE,null=True,blank=True, related_name='products')
@@ -29,10 +30,11 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
-    
     def save(self, *args, **kwargs):
         if not self.product_id:
-            self.product_id = slugify(self.name)
+            # Use seo_friendly_name if it exists, otherwise use name
+            slug_source = self.seo_friendly_name if self.seo_friendly_name else self.name
+            self.product_id = slugify(slug_source)
             original_id = self.product_id
             num = 1
             while Product.objects.filter(product_id=self.product_id).exists():

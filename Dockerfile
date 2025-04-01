@@ -1,0 +1,38 @@
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc python3-dev libpq-dev
+
+COPY requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq5 && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
+
+RUN pip install --no-cache-dir --no-deps /wheels/* && \
+    rm -rf /wheels && \
+    rm -f requirements.txt
+
+# Copy project files
+COPY . .
+
+# Create directories for static and media files
+RUN mkdir -p /app/static /app/media
+
+# Create a non-root user
+RUN useradd -m appuser && \
+    chown -R appuser:appuser /app
+USER appuser

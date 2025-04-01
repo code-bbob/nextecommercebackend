@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-oo9ge4pueyqs)6-!$hd57ovhen1werk6--ppddn6(hgfj(y^x4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['142.93.220.137', 'api.youthtech.com.np', 'localhost', '127.0.0.1', 'youthtech.com.np']
 
 
 # Application definition

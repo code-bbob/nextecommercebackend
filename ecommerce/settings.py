@@ -247,7 +247,7 @@ STORAGES = {
             "bucket_name": 'digitech-ecommerce',
             "endpoint_url": "https://blr1.digitaloceanspaces.com",
             "location":'media',
-            "default_acl": "private",
+            "default_acl": "public-read",
             "custom_domain": 'digitech-ecommerce.blr1.digitaloceanspaces.com',
         }
     },

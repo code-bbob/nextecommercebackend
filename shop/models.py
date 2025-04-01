@@ -20,9 +20,9 @@ class Product(models.Model):
     series = models.ForeignKey('Series', on_delete=models.CASCADE,null=True,blank=True, related_name='products')   
     old_price = models.FloatField(null=True,blank=True)
     price = models.IntegerField(default=0)
-    description= models.TextField(max_length=500, blank=True)
-    meta_description = models.TextField(max_length=160, blank=True)
-    meta_keywords = models.TextField(max_length=160, blank=True)
+    description= models.TextField( blank=True)
+    meta_description = models.TextField(blank=True)
+    meta_keywords = models.TextField(blank=True)
     published_date = models.DateField(default=timezone.now)
     
 

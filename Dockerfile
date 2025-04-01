@@ -40,6 +40,6 @@ COPY . .
 RUN mkdir -p /app/static /app/media
 
 # Create a non-root user
-RUN useradd -m appuser && \
-    chown -R appuser:appuser /app
-USER appuser
+# RUN useradd -m appuser && \
+#     chown -R appuser:appuser /app
+# USER appuser

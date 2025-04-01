@@ -332,7 +332,7 @@ class NavSearchView(APIView):
         products = Product.objects.filter(name__icontains=search)[:10]
         list = []
         for p in products:
-            list.append({"name":p.name,"id":p.product_id,"image":f"http://127.0.0.1:8000"+p.images.first().image.url, "price":p.price})
+            list.append({"name":p.name,"id":p.product_id,"image":p.images.first().image.url, "price":p.price})
         return Response(list)
 
 class NavCatView(APIView):

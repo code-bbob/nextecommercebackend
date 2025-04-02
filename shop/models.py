@@ -5,6 +5,8 @@ from django.conf import settings
 from django.utils import timezone
 from django.db.models import Avg
 from django.utils.text import slugify
+from ckeditor.fields import RichTextField
+
 # Create your models here.
 
 
@@ -21,7 +23,7 @@ class Product(models.Model):
     series = models.ForeignKey('Series', on_delete=models.CASCADE,null=True,blank=True, related_name='products')   
     old_price = models.FloatField(null=True,blank=True)
     price = models.IntegerField(default=0)
-    description= models.TextField( blank=True)
+    description= RichTextField()
     meta_description = models.TextField(blank=True)
     meta_keywords = models.TextField(blank=True)
     published_date = models.DateField(default=timezone.now)

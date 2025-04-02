@@ -14,7 +14,7 @@ from ckeditor.fields import RichTextField
 class Product(models.Model):
     # product_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product_id = models.SlugField(primary_key=True, unique=True,blank=True,editable=False)
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=300)
     seo_friendly_name = models.CharField(max_length=200, blank=True, null=True)
     emi = models.BooleanField(default=False)
     category = models.ForeignKey('Category', on_delete=models.CASCADE,null=True, related_name='products')

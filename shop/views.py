@@ -261,14 +261,47 @@ class SubcatSearch(generics.ListAPIView):
 class CatBrandSearch(generics.ListAPIView):
     serializer_class = ProductSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    ordering_fields = ['price']
+    ordering_fields = ['price', 'min_rating','rating','min_price','max_price']
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         cat = self.kwargs.get('catname')
         brand = self.kwargs.get('brandname')
 
+        
+        min_rating = self.request.query_params.get('min_rating')
+        min_price = self.request.query_params.get('min_price')
+        max_price = self.request.query_params.get('max_price')
+
         if brand:
-            queryset = Product.objects.filter(category__iexact=cat, brand__name__iexact = brand)
+            queryset = Product.objects.filter(category__name__iexact=cat, brand__name__iexact = brand)
+
+        else:
+            queryset = Product.objects.filter(category__iexact=cat)
+        queryset = queryset.annotate(
+            rating=Avg('ratings__rating'),
+            ratings_count=Count('ratings')
+        )
+
+        if min_rating:
+            try:
+                min_rating = float(min_rating)
+                queryset = queryset.filter(rating__gte=min_rating)
+            except (ValueError, TypeError):
+                pass
+        
+        if min_price:
+            try:
+                min_price = float(min_price)
+                queryset = queryset.filter(price__gte=min_price)
+            except (ValueError, TypeError):
+                pass
+        if max_price:
+            try:
+                max_price = float(max_price)
+                queryset = queryset.filter(price__lte=max_price)
+            except (ValueError, TypeError):
+                pass
 
         return queryset
     

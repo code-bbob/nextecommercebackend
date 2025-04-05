@@ -53,8 +53,8 @@ class ProductImage(models.Model):
 
 class ProductAttribute(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='attributes')
-    attribute = models.CharField(max_length=50)
-    value = models.TextField(max_length=100,blank=True, null=True)
+    attribute = models.CharField(max_length=50, blank=True, null=True)
+    value = models.TextField(max_length=200,blank=True, null=True)
 
 
 class Rating(models.Model):

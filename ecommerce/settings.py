@@ -211,24 +211,23 @@ FRONTEND_URL = "http://localhost:3000/"  # Your frontend URL
 
 SITE_ID = 1
 
-
-
-
 CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'Custom',
         'toolbar_Custom': [
             ['Bold', 'Italic', 'Underline'],
-            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock','LineHeight'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', 'LineHeight'],
             ['Link', 'Unlink'],
-            ['RemoveFormat', 'Source']
+            ['RemoveFormat', 'Source'],
+            '/',  # Add a new line in the toolbar
+            ['Font', 'FontSize'],  # Add Font and FontSize
         ],
         'height': 500,
         'width': 700,
+        'fontSize_sizes': '8/8px;9/9px;10/10px;11/11px;12/12px;14/14px;16/16px;18/18px;20/20px;22/22px;24/24px;26/26px;28/28px;36/36px;48/48px;72/72px;', # Define available font sizes
+        'font_names': 'Arial/Arial, Helvetica, sans-serif;Comic Sans MS/Comic Sans MS, cursive;Courier New/Courier New, Courier, monospace;Georgia/Georgia, serif;Lucida Sans Unicode/Lucida Sans Unicode, Lucida Grande, sans-serif;Tahoma/Tahoma, Geneva, sans-serif;Times New Roman/Times New Roman, Times, serif;Trebuchet MS/Trebuchet MS, Helvetica, sans-serif;Verdana/Verdana, Geneva, sans-serif', # Define available fonts
     }
 }
-
-
 
 import os
 from dotenv import load_dotenv

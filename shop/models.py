@@ -21,14 +21,14 @@ class Product(models.Model):
     sub_category = models.ForeignKey('SubCategory', on_delete=models.CASCADE,null=True,blank=True, related_name='products')
     brand = models.ForeignKey('Brand', on_delete=models.CASCADE,null=True, related_name='products')
     series = models.ForeignKey('Series', on_delete=models.CASCADE,null=True,blank=True, related_name='products')   
+    deal = models.BooleanField(default=False)
     old_price = models.FloatField(null=True,blank=True)
+    before_deal_price = models.FloatField(null=True,blank=True)
     price = models.IntegerField(default=0)
     description= RichTextField()
     meta_description = models.TextField(blank=True)
     meta_keywords = models.TextField(blank=True)
     published_date = models.DateField(default=timezone.now)
-    deal = models.BooleanField(default=False)
-    deal_price = models.FloatField(null=True,blank=True)
     
 
 

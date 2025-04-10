@@ -27,6 +27,8 @@ class Product(models.Model):
     meta_description = models.TextField(blank=True)
     meta_keywords = models.TextField(blank=True)
     published_date = models.DateField(default=timezone.now)
+    deal = models.BooleanField(default=False)
+    deal_price = models.FloatField(null=True,blank=True)
     
 
 

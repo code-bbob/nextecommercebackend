@@ -206,8 +206,8 @@ EMAIL_USE_TLS = True
 
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
-BASE_URL = "https://api.youthtech.com.np"  # Your backend URL
-FRONTEND_URL = "https://dgtech.com.np/"  # Your frontend URL
+BASE_URL = os.environ.get('BACKEND_URL')  # Your backend URL
+FRONTEND_URL = os.environ.get('FRONTEND_URL') # Your frontend URL
 
 SITE_ID = 1
 

@@ -93,6 +93,61 @@ class GetProduct(APIView):
         return paginator.get_paginated_response(serializer.data)
 
 
+
+class GetDealProduct(APIView):
+
+    def get(self, request, format=None):
+        # Retrieve query parameters for filtering
+        min_rating = request.query_params.get('min_rating')
+        min_price = request.query_params.get('min_price')
+        max_price = request.query_params.get('max_price')
+        # Instead of a single 'ordering' value, expect multiple ordering parameters
+        ordering_fields = request.query_params.getlist('ordering')
+        brand = request.query_params.get('brand')
+        # Base queryset annotated with average rating and rating count
+        queryset = Product.objects.filter(deal=True).annotate(
+            rating=Avg('ratings__rating'),
+            ratings_count=Count('ratings'),
+        )
+        
+        # Apply filtering based on min_rating, min_price, and max_price if provided
+        if min_rating:
+            try:
+                queryset = queryset.filter(rating__gte=float(min_rating))
+            except (ValueError, TypeError):
+                pass
+        if min_price:
+            try:
+                queryset = queryset.filter(price__gte=float(min_price))
+            except (ValueError, TypeError):
+                pass
+        if max_price:
+            try:
+                queryset = queryset.filter(price__lte=float(max_price))
+            except (ValueError, TypeError):
+                pass
+        if brand:
+            try:
+                queryset = queryset.filter(brand__name__icontains=brand)
+            except (ValueError, TypeError,):
+                pass
+        # Apply ordering based on multiple parameters
+        if ordering_fields:
+            # If there's only one ordering field and it contains spaces, split it into parts.
+            if len(ordering_fields) == 1 and " " in ordering_fields[0]:
+                ordering_fields = ordering_fields[0].split()
+            queryset = queryset.order_by(*ordering_fields)
+        
+        # Paginate the queryset using the custom pagination class
+        paginator = CustomPagination()
+        paginated_queryset = paginator.paginate_queryset(queryset, request, view=self)
+        serializer = ProductSerializer(paginated_queryset, many=True, context={'request': request})
+        
+        # Return a paginated response
+        return paginator.get_paginated_response(serializer.data)
+
+
+
 class ApiSearch(generics.ListAPIView):
     serializer_class = ProductSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

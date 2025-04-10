@@ -194,11 +194,13 @@ class DeliveryView(APIView):
             subject = "New Order Placed"
             from_email = "your_email@example.com"
             to_email = "bbobbasnet@gmail.com"
+            print("HERE")
             
             # Create the email message with both text and HTML versions
             msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
             msg.attach_alternative(html_content, "text/html")
             msg.send()
+            print("SENT")
             
             return Response(status=status.HTTP_200_OK)
         else:

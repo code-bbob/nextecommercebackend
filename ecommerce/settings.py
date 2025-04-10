@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-oo9ge4pueyqs)6-!$hd57ovhen1werk6--ppddn6(hgfj(y^x4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['142.93.220.137', 'api.youthtech.com.np', 'localhost', '127.0.0.1', 'youthtech.com.np']
+ALLOWED_HOSTS = ['142.93.220.137', 'api.youthtech.com.np', 'localhost', '127.0.0.1', 'youthtech.com.np', 'websroom.com']
 
 
 # Application definition
@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'blog',
     'userauth',
     'import_export',
-    'ckeditor'
+    'ckeditor',
+    'django_celery_results'
     
 ]
 
@@ -103,6 +104,10 @@ DATABASES = {
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': os.environ.get('POSTGRES_HOST'),
         'PORT': os.environ.get('POSTGRES_PORT'),
+        'CONN_MAX_AGE': 600,  # Allow persistent connections
+        'OPTIONS': {
+            'connect_timeout': 10,  # Timeout for initial connection
+        },
     }
 }
 
@@ -271,3 +276,10 @@ AWS_S3_OBJECT_PARAMETERS = {
 }
 
 
+# Celery settings
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://redis:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'

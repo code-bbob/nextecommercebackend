@@ -35,176 +35,6 @@ class OrderAPIView(APIView):
         else:
             return Response(serialzier.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# class DeliveryView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         user = request.user
-#         data = request.data
-#         order = Order.objects.filter(user=user, id=data["order"]).first()
-
-#         serializer = DeliverySerializer(data=data)
-        
-#         if serializer.is_valid(raise_exception=True):
-#             delivery_instance = serializer.save(order=order)
-#             order.status = "Placed"
-#             order.save()
-
-#             order_item_data = OrderItemSerializer(order.order_items.all(), many=True).data
-
-#             # Build HTML rows for each item
-#             item_rows = ""
-#             for item in order_item_data:
-#                 product_name = item.get("product_name", "N/A")
-#                 product_id = item.get("product_id", "N/A")
-#                 quantity = item.get("quantity", 0)
-#                 item_rows += f"""
-#                 <tr>
-#                     <td>{product_name}</td>
-#                     <td>{product_id}</td>
-#                     <td>{quantity}</td>
-#                 </tr>
-#                 """
-            
-#             # Extract relevant fields from serializer.data
-#             first_name = serializer.data.get('first_name', 'N/A')
-#             last_name = serializer.data.get('last_name', 'N/A')
-#             phone_number = serializer.data.get('phone_number', 'N/A')
-#             shipping_address = serializer.data.get('shipping_address', 'N/A')
-#             city = serializer.data.get('city', 'N/A')
-#             payment_amount = serializer.data.get('payment_amount', 0)
-#             shipping_cost = serializer.data.get('shipping_cost', 0)
-#             subtotal = serializer.data.get('subtotal', 0)
-#             discount = serializer.data.get('discount', 0)
-            
-            
-#             # Build a more readable HTML output
-#             html_content = f"""
-#             <!DOCTYPE html>
-#             <html>
-#             <head>
-#               <meta charset="utf-8">
-#               <title>New Order Notification</title>
-#               <style>
-#                 body {{
-#                   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-#                   background-color: #f7f7f7;
-#                   padding: 20px;
-#                   color: #333;
-#                 }}
-#                 .container {{
-#                   max-width: 600px;
-#                   margin: 0 auto;
-#                   background-color: #ffffff;
-#                   border-radius: 8px;
-#                   overflow: hidden;
-#                   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-#                 }}
-#                 .header {{
-#                   background-color: #4CAF50;
-#                   color: #ffffff;
-#                   padding: 20px;
-#                   text-align: center;
-#                 }}
-#                 .content {{
-#                   padding: 20px;
-#                   line-height: 1.6;
-#                 }}
-#                 .footer {{
-#                   background-color: #f0f0f0;
-#                   color: #777;
-#                   text-align: center;
-#                   padding: 10px;
-#                   font-size: 12px;
-#                 }}
-#                 table {{
-#                   width: 100%;
-#                   border-collapse: collapse;
-#                   margin-top: 10px;
-#                 }}
-#                 table td {{
-#                   padding: 8px;
-#                   border: 1px solid #ddd;
-#                 }}
-#                 table th {{
-#                   background-color: #f9f9f9;
-#                   text-align: left;
-#                   padding: 8px;
-#                   border: 1px solid #ddd;
-#                 }}
-#               </style>
-#             </head>
-#             <body>
-#               <div class="container">
-#                 <div class="header">
-#                   <h1>New Order Placed</h1>
-#                 </div>
-#                 <div class="content">
-#                   <p>Hello,</p>
-#                   <p>A new order has been placed: <strong>{order}</strong>.</p>
-#                   <table>
-#                   {item_rows}
-#                   </table>
-#                   <p>Please deliver the order to the following address:</p>
-                  
-#                   <!-- Display the delivery details in a neat table -->
-#                   <table>
-#                     <tr>
-#                       <th>Name</th>
-#                       <td>{first_name} {last_name}</td>
-#                     </tr>
-#                     <tr>
-#                       <th>Phone Number</th>
-#                       <td>{phone_number}</td>
-#                     </tr>
-#                     <tr>
-#                       <th>Address</th>
-#                       <td>{shipping_address},{city}</td>
-#                     </tr>
-#                     <tr>
-#                       <th>Subtotal</th>
-#                       <td>{subtotal}</td>
-#                     </tr>
-#                     <tr>
-#                       <th>Discount</th>
-#                       <td>{discount}</td>
-#                      <tr>
-#                       <th>Shipping Cost</th>
-#                       <td>{shipping_cost}</td>
-#                     </tr>
-#                     <tr>
-#                       <th>Total Amount</th>
-#                       <td>{payment_amount}</td>
-#                     </tr>
-#                   </table>
-                  
-#                   <p>After delivery, please update the order status accordingly.</p>
-#                   <p>Thank you!</p>
-#                 </div>
-#                 <div class="footer">
-#                   &copy; {datetime.datetime.now().year} Your Company Name. All rights reserved.
-#                 </div>
-#               </div>
-#             </body>
-#             </html>
-#             """
-
-#             # Generate a plain text version by stripping HTML tags
-#             text_content = strip_tags(html_content)
-            
-#             subject = "New Order Placed"
-#             from_email = "your_email@example.com"
-#             to_email = "bbobbasnet@gmail.com"
-            
-#             # Create the email message with both text and HTML versions
-#             msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
-#             msg.attach_alternative(html_content, "text/html")
-#             msg.send()
-            
-#             return Response(status=status.HTTP_200_OK)
-#         else:
-#             return Response({'error': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
-
 class DeliveryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -362,16 +192,13 @@ class DeliveryView(APIView):
             subject = "New Order Placed"
             from_email = "your_email@example.com"
             to_email = "bbobbasnet@gmail.com"
-            print("BEFORE SENDing")
-            
-            # Create the email message with both text and HTML versions
-            msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
-            msg.attach_alternative(html_content, "text/html")
-            msg.send()
-            
-            return Response(status=status.HTTP_200_OK)
+            # Send the email asynchronously using Celery
+            # send_order_email.delay(subject, text_content, html_content, from_email, [to_email])
+
+            return Response('OKAY ',status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CartView(APIView):
     """Manage the shopping cart"""

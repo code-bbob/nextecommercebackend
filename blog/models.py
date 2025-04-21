@@ -6,8 +6,8 @@ from django.utils.text import slugify
 
 class Blog(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.SlugField(primary_key=True, unique=True,blank=True)
-    title = models.CharField(max_length=100)
+    id = models.SlugField(primary_key=True, unique=True,blank=True,max_length=255)
+    title = models.CharField(max_length=255)
     author = models.CharField(max_length=50)
     content = RichTextField()
     image = models.ImageField(upload_to='blog/images', default='')

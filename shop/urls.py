@@ -10,6 +10,7 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path('api/', views.GetProduct.as_view(), name='api'),
+    path('api/tagged/', views.TaggedProductsView.as_view(), name='tagged_products'),
     path('api/deals/', views.GetDealProduct.as_view(), name='api'),
     path('api/navsearch/', views.NavSearchView.as_view(), name='search'),
     path('api/navcat/', views.NavCatView.as_view(), name='navcat'),

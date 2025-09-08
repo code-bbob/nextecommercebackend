@@ -451,3 +451,17 @@ class EmiView(APIView):
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)   
+
+
+
+class TaggedProductsView(APIView):
+    def get(self,request):
+        tag = request.query_params.get('tag')
+        if tag == 'trending':
+            products = Product.objects.filter(trending=True)
+        elif tag == 'best_seller':
+            products = Product.objects.filter(best_seller=True)
+        elif tag == 'latest':
+            products = Product.objects.all().order_by('-published_date')[:12]
+        serializer = ProductSerializer(products,many=True,context={'request': request})
+        return Response(serializer.data)

@@ -29,6 +29,12 @@ class Product(models.Model):
     meta_description = models.TextField(blank=True)
     meta_keywords = models.TextField(blank=True)
     published_date = models.DateField(default=timezone.now)
+    is_available = models.BooleanField(default=True)
+    stock = models.IntegerField(default=10)
+    trending = models.BooleanField(default=False)
+    best_seller = models.BooleanField(default=False)
+    featured = models.BooleanField(default=False)
+
     
 
 

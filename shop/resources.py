@@ -1,6 +1,6 @@
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget
-from .models import Product, ProductImage, ProductAttribute, Category, Brand, Series,SubCategory,PredefinedAttribute
+from .models import Product, ProductImage, ProductAttribute, Category, Brand, Series,SubCategory,PredefinedAttribute, Color, Variant
 
 class ProductResource(resources.ModelResource):
     product_id = fields.Field(attribute='product_id', column_name='product_id')
@@ -79,4 +79,14 @@ class SubCategoryResource(resources.ModelResource):
 class PredefinedAttributeResource(resources.ModelResource):
     class Meta:
         model = PredefinedAttribute
+        fields = '__all__'
+
+class ColorResource(resources.ModelResource):
+    class Meta:
+        model = Color
+        fields = '__all__'
+
+class VariantResource(resources.ModelResource):
+    class Meta:
+        model = Variant
         fields = '__all__'

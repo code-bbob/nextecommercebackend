@@ -35,9 +35,6 @@ class Product(models.Model):
     best_seller = models.BooleanField(default=False)
     featured = models.BooleanField(default=False)
 
-    
-
-
     def __str__(self):
         return self.name
     def save(self, *args, **kwargs):
@@ -52,13 +49,29 @@ class Product(models.Model):
                 num += 1
         super().save(*args, **kwargs)
 
-    
+class Color(models.Model):
+    name = models.CharField(max_length=50)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='colors')
+
+    def __str__(self):
+        return f"{self.product.name} - {self.name}"
+
+class Variant(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
+    name = models.CharField(max_length=100)
+    additional_price = models.FloatField(default=0)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.name}"    
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name="images", on_delete=models.CASCADE)
     image = models.ImageField(upload_to='shop/images', default='')
-
-
+    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='images', null=True, blank=True)
+    
+    def __str__(self):
+        return f"Image for {self.product.name} and color {self.color.name if self.color else 'N/A'}"
+    
 class ProductAttribute(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='attributes')
     attribute = models.CharField(max_length=50, blank=True, null=True)

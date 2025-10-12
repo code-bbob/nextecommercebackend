@@ -1,8 +1,25 @@
 from django.contrib import admin
-from .models import Product, Comment, Repliess, ProductImage, Rating, Brand,Series, Category, SubCategory, ProductAttribute, PredefinedAttribute
+from .models import Product, Comment, Repliess, ProductImage, Rating, Brand,Series, Category, SubCategory, ProductAttribute, PredefinedAttribute, Color, Variant
 from import_export.admin import ImportExportModelAdmin
 from .resources import ProductResource, ProductAttributeResource, ProductImageResource, BrandResource, SeriesResource, CategoryResource, SubCategoryResource, PredefinedAttributeResource
 # Register your models here.
+
+class ColorInline(admin.TabularInline):
+    model = Color
+    extra = 0
+
+class ColorAdmin(ImportExportModelAdmin,admin.ModelAdmin):
+    model = Color
+    resource_class = ProductAttributeResource
+
+class VariantInline(admin.TabularInline):
+    model = Variant
+    extra = 0
+
+class VariantAdmin(ImportExportModelAdmin,admin.ModelAdmin):
+    model = Variant
+    resource_class = ProductAttributeResource
+
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
@@ -46,7 +63,7 @@ class AttributeInline(admin.TabularInline):
     extra = 0
 
 class ProductsAdmin(ImportExportModelAdmin,admin.ModelAdmin):
-    inlines = [AttributeInline,ProductImageInline, RatingInLine]
+    inlines = [AttributeInline, ColorInline, VariantInline,ProductImageInline, RatingInLine]
     resource_class = ProductResource
 
 
@@ -54,6 +71,7 @@ admin.site.register(Product,ProductsAdmin)
 admin.site.register(Comment)
 admin.site.register(Repliess)
 admin.site.register(Brand, BrandAdmin)
+admin.site.register(Color, ColorAdmin)
 admin.site.register(ProductImage, ProductImageAdmin)
 admin.site.register(Series,SeriesAdmin)
 admin.site.register(Category,CategoryAdmin)

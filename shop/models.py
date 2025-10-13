@@ -52,6 +52,7 @@ class Product(models.Model):
 class Color(models.Model):
     name = models.CharField(max_length=50)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='colors')
+    hex = models.CharField(max_length=7, blank=True, null=True)  # e.g., #FFFFFF
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"

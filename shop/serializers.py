@@ -40,7 +40,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        fields = ['image']
+        fields = ['image','color']
 
 class RatingSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField(read_only = True)

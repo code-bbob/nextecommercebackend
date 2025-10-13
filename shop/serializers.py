@@ -38,9 +38,17 @@ class CommentSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(f"/media/{obj.user.dp}")
     
 class ProductImageSerializer(serializers.ModelSerializer):
+    color_name = serializers.SerializerMethodField()
+    hex = serializers.SerializerMethodField()
     class Meta:
         model = ProductImage
-        fields = ['image','color']
+        fields = ['image','color','color_name','hex']
+
+    def get_color_name(self, obj):
+        return obj.color.name if obj.color else None
+
+    def get_hex(self, obj):
+        return obj.color.hex if obj.color else None
 
 class RatingSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField(read_only = True)

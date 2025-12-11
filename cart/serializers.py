@@ -42,16 +42,6 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_user_name(self, obj):
         return obj.user.name
 
-
-
-
-
-
-
-
-
-
-
 class CartSerializer(serializers.ModelSerializer):
     product_id = serializers.CharField(source='product.product_id', read_only=True)
     image = serializers.SerializerMethodField()
@@ -59,7 +49,7 @@ class CartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ['id','product_id', 'image', 'quantity','name','price']
+        fields = ['id','product_id', 'image', 'quantity','name','price','color']
 
     def get_image(self, obj):
         request = self.context.get('request')  # Get request from context

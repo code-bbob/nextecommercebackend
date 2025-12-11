@@ -79,16 +79,17 @@ class ProductAttributeSerializer(serializers.ModelSerializer):
         fields = ['attribute', 'value']
     
 class ProductSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True)
+    # comments = CommentSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many = True, read_only = True)
     brandName = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
     category = serializers.StringRelatedField()
     sub_category = serializers.StringRelatedField()
-    attributes = ProductAttributeSerializer(many=True, read_only=True)
+    # attributes = ProductAttributeSerializer(many=True, read_only=True)
     class Meta:
         model = Product
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['product_id','name','category','price','discount_price','stock','images','ratings']
         
 
     def get_ratings(self,obj):

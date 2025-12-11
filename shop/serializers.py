@@ -84,7 +84,7 @@ class ProductSerializer(serializers.ModelSerializer):
     # brandName = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
     category = serializers.StringRelatedField()
-    sub_category = serializers.StringRelatedField()
+    # sub_category = serializers.StringRelatedField()
     # attributes = ProductAttributeSerializer(many=True, read_only=True)
     class Meta:
         model = Product

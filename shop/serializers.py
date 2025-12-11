@@ -89,7 +89,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         # fields = '__all__'
-        fields = ['product_id','name','category','price','discount_price','stock','images','ratings']
+        fields = ['product_id','name','category','price','old_price', 'before_deal_price','stock','images','ratings']
         
 
     def get_ratings(self,obj):

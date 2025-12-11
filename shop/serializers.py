@@ -81,7 +81,7 @@ class ProductAttributeSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     # comments = CommentSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many = True, read_only = True)
-    brandName = serializers.SerializerMethodField()
+    # brandName = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
     category = serializers.StringRelatedField()
     sub_category = serializers.StringRelatedField()

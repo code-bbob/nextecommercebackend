@@ -1,3 +1,4 @@
+import sys
 from django.db import models
 from userauth.models import User
 import uuid
@@ -111,6 +112,7 @@ class Repliess(models.Model):
 
 class Brand(models.Model):
     name = models.CharField(max_length=50)
+    category = models.ManyToManyField('Category', related_name='brands', null=True, blank=True)
     def __str__(self):
         return self.name
     
@@ -188,6 +190,8 @@ from django.dispatch import receiver
 
 @receiver(post_save, sender=Product)
 def create_default_attributes(sender, instance, created, **kwargs):
+    if 'loaddata' in sys.argv or 'migrate' in sys.argv:
+        return
     if created:
         # Get predefined attributes for the product's category
         predefined_attrs = instance.category.predefined_attributes.all() if instance.category else []

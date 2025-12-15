@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from .models import Product,Comment
 from math import ceil
-from .serializers import ProductSerializer, CommentSerializer, ReplySerializer, RatingSerializer, SeriesSerializer
+from .serializers import ProductSerializer, CommentSerializer, ReplySerializer, RatingSerializer, SeriesSerializer, GetProductSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import filters
@@ -14,7 +14,7 @@ from django.db.models import Avg, Count
 from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from .serializers import EmiSerializer
-
+from shop.models import Brand, Series, Category
 
 # @api_view(['GET'])
 # def getProduct(request):
@@ -149,7 +149,7 @@ class GetDealProduct(APIView):
 
 
 class ApiSearch(generics.ListAPIView):
-    serializer_class = ProductSerializer
+    serializer_class = GetProductSerializer 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['product_id','name', 'description','brand__name','category__name','sub_category__name','series__name']
     ordering_fields = ['price']  # Add more ordering fields if needed
@@ -234,15 +234,15 @@ class CatSearch(generics.ListAPIView):
 
     def get_queryset(self):
         cat = self.kwargs.get('name')
-        series = self.kwargs.get('series')
+        seriesname = self.kwargs.get('seriesname')
 
         min_rating = self.request.query_params.get('min_rating')
         min_price = self.request.query_params.get('min_price')
         max_price = self.request.query_params.get('max_price')
         
         queryset = Product.objects.filter(category__name__iexact=cat)
-        if series:
-            queryset = queryset.filter(series__exact=series)
+        if seriesname:
+            queryset = queryset.filter(series__name__icontains=seriesname)
         queryset = queryset.annotate(
             rating=Avg('ratings__rating'),
             ratings_count=Count('ratings')
@@ -425,21 +425,22 @@ class NavSearchView(APIView):
 
 class NavCatView(APIView):
     def get(self,request):
-        search = request.query_params.get('search')
+        # search = request.query_params.get('search')
         #now get brands and series that match the search
         #filter the products that match the search and then get brands and series that match the search
-        products = Product.objects.filter(category__name__iexact=search)
-        list = []
-        brands = []
-        for p in products:
-            brand = p.brand.name
-            series = p.brand.series.all()
-            series = series.filter(category__name__iexact=search)
-            series = SeriesSerializer(series,many=True).data
-            if brand not in brands:
-                brands.append(brand)
-                list.append({"brand":brand,"series":series})
-        return Response(list)
+        # products = Product.objects.filter(category__name__iexact=search)
+        categories = Category.objects.all()
+        list1 = []
+        for category in categories:
+            list = []
+            brands = Brand.objects.filter(category=category)
+            for b in brands:
+                series = b.series.filter(category=category)
+                series = SeriesSerializer(series,many=True).data
+                list.append({"brand":b.name,"series":series})
+            list1.append({category.name:list})
+            
+        return Response(list1)
 
 
 class EmiView(APIView):

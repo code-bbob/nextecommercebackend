@@ -43,6 +43,6 @@ RUN chmod +x /entrypoint.sh && \
 
 # Create directories for static and media files
 RUN mkdir -p /app/static /app/media
-RUN python manage.py collectstatic --noinput
+# RUN python manage.py collectstatic --noinput
 
 ENTRYPOINT ["/entrypoint.sh"]

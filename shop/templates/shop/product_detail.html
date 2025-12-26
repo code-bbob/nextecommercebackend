@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.title }} - Price in Nepal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .product-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-images {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .main-image {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumbnail-gallery {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: #c41e3a;
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .product-price {
+            font-size: 28px;
+            color: #c41e3a;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .shipping-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 15px;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .color-btn:hover {
+            border-color: #c41e3a;
+        }
+
+        .color-btn.active {
+            border-color: #c41e3a;
+            background: #fff5f5;
+        }
+
+        .size-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .size-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .size-btn:hover {
+            border-color: #c41e3a;
+        }
+
+        .size-btn.active {
+            border-color: #c41e3a;
+            background: #fff5f5;
+        }
+
+        .size-btn.disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+            border-color: #ddd;
+        }
+
+        .quantity-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: fit-content;
+        }
+
+        .qty-btn {
+            padding: 8px 15px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #333;
+            transition: background 0.3s;
+        }
+
+        .qty-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .qty-input {
+            width: 50px;
+            text-align: center;
+            border: none;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        .qty-input:focus {
+            outline: none;
+        }
+
+        .add-to-cart-btn {
+            padding: 12px 40px;
+            background: #c41e3a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .add-to-cart-btn:hover {
+            background: #a01830;
+        }
+
+        .add-to-cart-btn.out-of-stock {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .description {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .description h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #222;
+        }
+
+        .description p {
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .product-detail {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 15px;
+            }
+
+            .product-info h1 {
+                font-size: 20px;
+            }
+
+            .product-price {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="product-detail">
+            <!-- Product Images -->
+            <div class="product-images">
+                <div class="main-image">
+                    <img src="{{ product.images.first.image.url }}" alt="{{ product.title }}" id="mainImage">
+                </div>
+                <div class="thumbnail-gallery">
+                    {% for image in product.images.all %}
+                    <div class="thumbnail {% if forloop.first %}active{% endif %}" onclick="changeImage(this)">
+                        <img src="{{ image.image.url }}" alt="{{ product.title }}">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="product-info">
+                <h1>{{ product.title }}</h1>
+                <div class="product-price">Rs {{ product.price|floatformat:0 }}</div>
+                <div class="shipping-info">Shipping is calculated at checkout</div>
+
+                <!-- Choose Color -->
+                {% if product.colors.all %}
+                <div class="section">
+                    <div class="section-title">Choose Colour</div>
+                    <div class="color-options">
+                        {% for color in product.colors.all %}
+                        <button class="color-btn" onclick="selectColor(this)">
+                            {{ color.name }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Choose Size/Variant -->
+                {% if product.variants.all %}
+                <div class="section">
+                    <div class="section-title">Choose Size</div>
+                    <div class="size-options">
+                        {% for variant in product.variants.all %}
+                        <button class="size-btn" onclick="selectSize(this)">
+                            {{ variant.size }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Quantity Section -->
+                <div class="section">
+                    <div class="section-title">Quantity</div>
+                    <div class="quantity-section">
+                        <div class="quantity-controls">
+                            <button class="qty-btn" onclick="decreaseQty()">−</button>
+                            <input type="number" class="qty-input" id="quantity" value="1" min="1">
+                            <button class="qty-btn" onclick="increaseQty()">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add to Cart Button -->
+                <button class="add-to-cart-btn" onclick="addToCart()">
+                    Add to Cart
+                </button>
+
+                <!-- Description -->
+                <div class="description">
+                    <h3>Description</h3>
+                    <p>{{ product.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function changeImage(thumbnail) {
+            const mainImage = document.getElementById('mainImage');
+            const img = thumbnail.querySelector('img');
+            mainImage.src = img.src;
+            
+            // Update active state
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            thumbnail.classList.add('active');
+        }
+
+        function selectColor(button) {
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+        }
+
+        function selectSize(button) {
+            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+        }
+
+        function increaseQty() {
+            const qty = document.getElementById('quantity');
+            qty.value = parseInt(qty.value) + 1;
+        }
+
+        function decreaseQty() {
+            const qty = document.getElementById('quantity');
+            if (parseInt(qty.value) > 1) {
+                qty.value = parseInt(qty.value) - 1;
+            }
+        }
+
+        function addToCart() {
+            // Functionality to be added
+            alert('Add to cart functionality to be implemented');
+        }
+    </script>
+</body>
+</html>

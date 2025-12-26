@@ -21,6 +21,7 @@ class DeliverySerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     order_items = OrderItemSerializer(many=True, read_only=True)
     user_name = serializers.SerializerMethodField()
+    items = serializers.ListField(required=False, write_only=True)  # Accept direct items for guest checkout
     # delivery = DeliverySerializer(read_only=True)
 
     class Meta:
@@ -29,18 +30,32 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         carts = validated_data.pop('carts', None)
+        items = validated_data.pop('items', None)  # Items sent directly from frontend
         order = Order.objects.create(**validated_data)
+        
+        # Handle cart items (for logged-in users)
         if carts: 
             for cart in carts:
                 product = cart.product
                 quantity = cart.quantity
                 cart.delete()
                 OrderItem.objects.create(product=product, quantity=quantity, order=order)
+        
+        # Handle direct items (for guest users or when items are sent directly)
+        elif items:
+            for item in items:
+                product_id = item.get('product_id')
+                quantity = item.get('quantity', 1)
+                try:
+                    product = Product.objects.get(product_id=product_id)
+                    OrderItem.objects.create(product=product, quantity=quantity, order=order)
+                except Product.DoesNotExist:
+                    continue  # Skip if product doesn't exist
 
         return order
     
     def get_user_name(self, obj):
-        return obj.user.name
+        return obj.user.name if obj.user else "Guest"
 
 class CartSerializer(serializers.ModelSerializer):
     product_id = serializers.CharField(source='product.product_id', read_only=True)

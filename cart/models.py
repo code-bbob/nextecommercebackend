@@ -8,7 +8,7 @@ class Order(models.Model):
         ('Cleared','Cleared')
     ]
     id = models.UUIDField(primary_key=True,default=uuid.uuid4)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='orders', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='orders', on_delete=models.CASCADE, null=True, blank=True)
     status = models.CharField(max_length=10,choices=STATUS_CHOICES,default="Unplaced")
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -18,7 +18,8 @@ class Order(models.Model):
         items_list= '\n'.join([str(order_item) for order_item in self.order_items.all()])
         return f"\n{items_list}"
     def __str__(self):
-        return f"{self.order_items_str()} by {self.user}"
+        user_info = self.user if self.user else "Guest"
+        return f"{self.order_items_str()} by {user_info}"
 
 class OrderItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -52,7 +53,8 @@ class Delivery(models.Model):
 
 
     def __str__(self):
-        return f"Delivery for {self.order.user}"
+        user_info = self.order.user if self.order.user else "Guest"
+        return f"Delivery for {user_info}"
     
 class Cart(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='cart', on_delete=models.CASCADE)

@@ -1,10 +1,11 @@
 from django.urls import path
-from .views import OrderAPIView
+from .views import OrderAPIView, CheckoutAPIView
 from . import views
 
 urlpatterns = [ 
     # URL for listing and creating orders (GET and POST)
     path('api/', OrderAPIView.as_view(), name='order-list'),
+    path('api/checkout/', CheckoutAPIView.as_view(), name='checkout'),
     path('api/delivery/', views.DeliveryView.as_view(), name="delivery"),
     path('api/cart/', views.CartView.as_view(), name="cart"),
     path('api/cart/update/', views.CartView.as_view(), name="cart-update"),

@@ -108,6 +108,6 @@ class UserPasswordResetSerializer(serializers.Serializer):
 class UserInfoSerializer(serializers.ModelSerializer):
   class Meta:
     model = User
-    fields = ['name','email','dp','bio']
+    fields = ['name','email','dp','bio','is_staff','is_superuser']
 
   

@@ -60,6 +60,21 @@ class UserRegistrationView(APIView):
     else:
       return Response({'msg': 'Otp is not present in the system!'}, status=status.HTTP_400_BAD_REQUEST)
     
+# class UserLoginView(APIView):
+#   def post(self, request, format=None):
+#     request.data['email'] = request.data['email'].lower()
+#     serializer = UserLoginSerializer(data=request.data)
+#     serializer.is_valid(raise_exception=True)
+#     email = serializer.data.get('email').lower()
+#     password = serializer.data.get('password')
+#     user = authenticate(email=email, password=password)
+#     if user is not None:
+#       token = get_tokens_for_user(user)
+#       return Response({'token':token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
+#     else:
+#       return Response({'errors':{'non_field_errors':['Email or Password is not Valid']}},status=status.HTTP_400_BAD_REQUEST)
+    
+
 class UserLoginView(APIView):
   def post(self, request, format=None):
     request.data['email'] = request.data['email'].lower()
@@ -70,11 +85,15 @@ class UserLoginView(APIView):
     user = authenticate(email=email, password=password)
     if user is not None:
       token = get_tokens_for_user(user)
-      return Response({'token':token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
+      user_serializer = UserInfoSerializer(user)
+      return Response({
+        'auth_token': str(token),
+        'user': user_serializer.data,
+        'msg': 'Login Success'
+      }, status=status.HTTP_200_OK)
     else:
       return Response({'errors':{'non_field_errors':['Email or Password is not Valid']}},status=status.HTTP_400_BAD_REQUEST)
-    
-  
+
 class UserChangePasswordView(APIView):
   permission_classes = [IsAuthenticated]
   def post(self, request, format=None):

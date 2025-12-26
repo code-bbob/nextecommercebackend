@@ -1,1 +1,19 @@
+# Ignore DB volumes
 volumes/
+**/volumes/
+postgres_data/
+
+# Python junk
+__pycache__/
+*.pyc
+
+# Git
+.git/
+.gitignore
+
+# Node junk (if any)
+node_modules/
+
+# Env files
+.env
+

@@ -19,9 +19,10 @@ class OrderAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         if request.user and request.user.is_superuser:
-            print("Here")
             orders = Order.objects.all()
-            print(orders)
+            status = request.GET.get('status')
+            if status:
+                orders = orders.filter(status=status)
         else:
             orders = []
         serializer = OrderSerializer(orders, many=True)

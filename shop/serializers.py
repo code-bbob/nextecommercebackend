@@ -117,6 +117,7 @@ class ProductSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many = True, read_only = True)
     brandName = serializers.SerializerMethodField()
+    seriesName = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
     category = serializers.StringRelatedField()
     sub_category = serializers.StringRelatedField()
@@ -145,6 +146,8 @@ class ProductSerializer(serializers.ModelSerializer):
     
     def get_brandName(self, obj):
         return obj.brand.name
+    def get_seriesName(self, obj):
+        return obj.series.name if obj.series else None
 
 class SeriesSerializer(serializers.ModelSerializer):
     class Meta:

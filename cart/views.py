@@ -18,8 +18,10 @@ class OrderAPIView(APIView):
     permission_classes=[AllowAny]
 
     def get(self, request, *args, **kwargs):
-        if request.user and request.user.is_authenticated:
-            orders = Order.objects.filter(user=request.user)
+        if request.user and request.user.is_superuser:
+            print("Here")
+            orders = Order.objects.all()
+            print(orders)
         else:
             orders = []
         serializer = OrderSerializer(orders, many=True)
@@ -463,3 +465,36 @@ class CouponView(APIView):
                     return Response({'status':'Failed','message':'Coupon has already been used.'})
             else:
                 return Response({'status':'Failed','message':'Coupon is not valid.'},status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class OrderDetailAPIView(APIView):
+    """Get a specific order by ID"""
+    permission_classes = [AllowAny]
+
+    def get(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+            serializer = OrderSerializer(order)
+            return Response(serializer.data)
+        except Order.DoesNotExist:
+            return Response({'detail': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    def patch(self, request, order_id):
+        """Update order status"""
+        try:
+            order = Order.objects.get(id=order_id)
+            data = request.data
+            
+            # Update status if provided
+            if 'status' in data:
+                order.status = data['status']
+            
+            order.save()
+            serializer = OrderSerializer(order)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Order.DoesNotExist:
+            return Response({'detail': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+

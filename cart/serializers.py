@@ -21,8 +21,8 @@ class DeliverySerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     order_items = OrderItemSerializer(many=True, read_only=True)
     user_name = serializers.SerializerMethodField()
+    delivery = DeliverySerializer(read_only=True)
     items = serializers.ListField(required=False, write_only=True)  # Accept direct items for guest checkout
-    # delivery = DeliverySerializer(read_only=True)
 
     class Meta:
         model = Order

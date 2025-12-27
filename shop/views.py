@@ -54,7 +54,7 @@ class GetProduct(APIView):
         queryset = Product.objects.all().annotate(
             rating=Avg('ratings__rating'),
             ratings_count=Count('ratings')
-        )
+        ).order_by('-published_date')
         
         # Apply filtering based on min_rating, min_price, and max_price if provided
         if min_rating:

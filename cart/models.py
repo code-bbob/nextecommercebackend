@@ -4,12 +4,15 @@ import uuid
 from django.utils import timezone
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('Placed','Placed'),
-        ('Cleared','Cleared')
+        ('Pending','Pending'),
+        ('Dispatched','Dispatched'),
+        ('Cancelled','Cancelled'),
+        ('Cleared','Cleared'),
+
     ]
     id = models.UUIDField(primary_key=True,default=uuid.uuid4)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='orders', on_delete=models.CASCADE, null=True, blank=True)
-    status = models.CharField(max_length=10,choices=STATUS_CHOICES,default="Unplaced")
+    status = models.CharField(max_length=10,choices=STATUS_CHOICES,default="Pending")
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
     carts = models.ManyToManyField('Cart', related_name='order', blank=True)
@@ -34,7 +37,7 @@ class OrderItem(models.Model):
         unique_together = ['order', 'product']
 
 class Delivery(models.Model):
-    order=models.ForeignKey(Order, related_name='delivery', on_delete=models.CASCADE)#yo rel name xai uta fields ma use hunxa serializers ko
+    order=models.OneToOneField(Order, related_name='delivery', on_delete=models.CASCADE)#yo rel name xai uta fields ma use hunxa serializers ko
     phone_number = models.CharField(max_length=10)
     first_name = models.CharField(max_length=100,null=True,blank=True)
     last_name = models.CharField(max_length=100,null=True,blank=True)

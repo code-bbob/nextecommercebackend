@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/cart/merge/', views.MergeCartView.as_view(), name="cart-merge"),
     path('api/order/', views.OrderAPIView.as_view(), name="order"),
     path('api/coupon/', views.CouponView.as_view(), name="coupon"),
+    path('api/<str:order_id>/', views.OrderDetailAPIView.as_view(), name='order-detail'),
 
     # # URL for retrieving, updating, and deleting a specific order (GET, PUT, PATCH, DELETE)
     # path('api/<str:pk>/', OrderAPIView.as_view(), name='order-detail'),

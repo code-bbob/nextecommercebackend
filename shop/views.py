@@ -1,4 +1,7 @@
 from django.shortcuts import render
+import re
+from urllib.parse import unquote
+from typing import Optional
 from .models import Product,Comment
 from math import ceil
 from .serializers import ProductSerializer, CommentSerializer, ReplySerializer, RatingSerializer, SeriesSerializer, GetProductSerializer
@@ -15,6 +18,15 @@ from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from .serializers import EmiSerializer
 from shop.models import Brand, Series, Category
+
+
+def decode_slug(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    decoded = unquote(str(value))
+    decoded = decoded.replace('-', ' ')
+    decoded = re.sub(r"\s+", " ", decoded).strip()
+    return decoded or None
 
 # @api_view(['GET'])
 # def getProduct(request):
@@ -105,7 +117,12 @@ class GetDealProduct(APIView):
         ordering_fields = request.query_params.getlist('ordering')
         brand = request.query_params.get('brand')
         # Base queryset annotated with average rating and rating count
-        queryset = Product.objects.filter(deal=True).annotate(
+        # Use select_related for ForeignKey relations and prefetch_related for reverse relations
+        queryset = Product.objects.filter(deal=True).select_related(
+            'brand', 'category', 'sub_category', 'series'
+        ).prefetch_related(
+            'ratings', 'colors'
+        ).annotate(
             rating=Avg('ratings__rating'),
             ratings_count=Count('ratings'),
         )
@@ -157,7 +174,12 @@ class ApiSearch(generics.ListAPIView):
 
     def get_queryset(self):
         # Base queryset annotated with average rating and ratings count
-        queryset = Product.objects.all().annotate(
+        # Use select_related for ForeignKey relations and prefetch_related for reverse relations
+        queryset = Product.objects.all().select_related(
+            'brand', 'category', 'sub_category', 'series'
+        ).prefetch_related(
+            'ratings', 'colors'
+        ).annotate(
             rating=Avg('ratings__rating'),
             ratings_count=Count('ratings')
         )   
@@ -233,16 +255,23 @@ class CatSearch(generics.ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        cat = self.kwargs.get('name')
-        seriesname = self.kwargs.get('seriesname')
+        cat = decode_slug(self.kwargs.get('name'))
+        brand = decode_slug(self.kwargs.get('brandname'))
+        series = decode_slug(self.kwargs.get('series')) or decode_slug(self.kwargs.get('seriesname'))
 
         min_rating = self.request.query_params.get('min_rating')
         min_price = self.request.query_params.get('min_price')
         max_price = self.request.query_params.get('max_price')
         
-        queryset = Product.objects.filter(category__name__iexact=cat)
-        if seriesname:
-            queryset = queryset.filter(series__name__icontains=seriesname)
+        queryset = Product.objects.filter(category__name__iexact=cat).select_related(
+            'brand', 'category', 'sub_category', 'series'
+        ).prefetch_related(
+            'ratings', 'colors'
+        )
+        if brand:
+            queryset = queryset.filter(brand__name__iexact=brand)
+        if series:
+            queryset = queryset.filter(series__name__iexact=series)
         queryset = queryset.annotate(
             rating=Avg('ratings__rating'),
             ratings_count=Count('ratings')
@@ -320,8 +349,8 @@ class CatBrandSearch(generics.ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        cat = self.kwargs.get('catname')
-        brand = self.kwargs.get('brandname')
+        cat = decode_slug(self.kwargs.get('catname'))
+        brand = decode_slug(self.kwargs.get('brandname'))
 
         
         min_rating = self.request.query_params.get('min_rating')
@@ -329,10 +358,9 @@ class CatBrandSearch(generics.ListAPIView):
         max_price = self.request.query_params.get('max_price')
 
         if brand:
-            queryset = Product.objects.filter(category__name__iexact=cat, brand__name__iexact = brand)
-
+            queryset = Product.objects.filter(category__name__iexact=cat, brand__name__iexact=brand)
         else:
-            queryset = Product.objects.filter(category__iexact=cat)
+            queryset = Product.objects.filter(category__name__iexact=cat)
         queryset = queryset.annotate(
             rating=Avg('ratings__rating'),
             ratings_count=Count('ratings')
@@ -366,14 +394,18 @@ class SeriesSearch(generics.ListAPIView):
     ordering_fields = ['price']
 
     def get_queryset(self):
-        cat = self.kwargs.get('catname')
-        brand = self.kwargs.get('brandname')
-        series = self.kwargs.get('seriesname')
+        cat = decode_slug(self.kwargs.get('catname'))
+        brand = decode_slug(self.kwargs.get('brandname'))
+        series = decode_slug(self.kwargs.get('seriesname'))
 
-        if series:
-            queryset = Product.objects.filter(category__iexact=cat, brand__name__iexact = brand, series__iexact = series)
-        
-        return queryset
+        if not (cat and brand and series):
+            return Product.objects.none()
+
+        return Product.objects.filter(
+            category__name__iexact=cat,
+            brand__name__iexact=brand,
+            series__name__iexact=series,
+        )
 
 class CommentView(APIView):
     def post(self, request, product_id):

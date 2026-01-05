@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Order, OrderItem, Delivery, Cart
+from .models import Order, OrderItem, Delivery, Cart, Payment
 from shop.models import Product
 from shop.serializers import ProductSerializer
 
@@ -78,3 +78,22 @@ class CartSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(image_url)  # Generate absolute URL
         
         return None
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ['id', 'stripe_payment_intent_id', 'stripe_client_secret', 'amount', 'currency', 'status', 'email', 'created_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class CreatePaymentIntentSerializer(serializers.Serializer):
+    amount = serializers.IntegerField(min_value=100)  # Minimum 1 USD in cents
+    email = serializers.EmailField()
+    order_id = serializers.UUIDField(required=False, allow_null=True)
+    delivery_id = serializers.UUIDField(required=False, allow_null=True)
+
+
+class ConfirmPaymentSerializer(serializers.Serializer):
+    payment_intent_id = serializers.CharField(max_length=255)
+    payment_intent_client_secret = serializers.CharField(max_length=255)

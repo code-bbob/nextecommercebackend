@@ -53,7 +53,7 @@ class Delivery(models.Model):
     discount = models.FloatField(default=0,null=True,blank=True)
     payment_amount = models.FloatField(default=0)
     payment_status = models.CharField(max_length=10,null=True,blank=True)
-
+    coupon_code = models.CharField(max_length=100,null=True,blank=True)
 
     def __str__(self):
         user_info = self.order.user if self.order.user else "Guest"
@@ -110,3 +110,45 @@ class Coupon(models.Model):
             self.save()
             return True
         return False
+
+
+class Payment(models.Model):
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('succeeded', 'Succeeded'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    order = models.OneToOneField(Order, related_name='payment', on_delete=models.CASCADE, null=True, blank=True)
+    delivery = models.OneToOneField(Delivery, related_name='payment', on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='payments', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    # Stripe information
+    stripe_payment_intent_id = models.CharField(max_length=255, unique=True, db_index=True)
+    stripe_client_secret = models.CharField(max_length=255, blank=True)
+    stripe_charge_id = models.CharField(max_length=255, blank=True, unique=True, null=True)
+    
+    # Payment details
+    amount = models.IntegerField(help_text="Amount in cents")  # Store in cents for Stripe
+    currency = models.CharField(max_length=3, default='usd')
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    
+    # Customer information
+    email = models.EmailField()
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['stripe_payment_intent_id']),
+            models.Index(fields=['status']),
+            models.Index(fields=['user', '-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"Payment {self.stripe_payment_intent_id} - {self.status}"

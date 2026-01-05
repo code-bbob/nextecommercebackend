@@ -12,6 +12,7 @@ import datetime
 from django.core.mail import EmailMultiAlternatives
 from django.utils.html import strip_tags
 from .tasks import send_order_email  # Import the Celery task
+from django.utils import timezone
 
 
 class OrderAPIView(APIView):
@@ -58,10 +59,46 @@ class CheckoutAPIView(APIView):
         
         # Get cart items from request
         cart_items_data = data.get('items', [])
-        print(data)
+        coupon_code = data.get('coupon_code', None)
         
         if not cart_items_data:
             return Response({'detail': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate coupon if provided
+        coupon_used = None
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(code=coupon_code)
+                
+                # Check if coupon is active
+                if not coupon.active:
+                    return Response(
+                        {'detail': 'Coupon is not active', 'coupon_error': 'This coupon is no longer valid'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Check if coupon is valid using the is_valid method
+                if not coupon.is_valid():
+                    # Determine the reason for invalidity
+                    if coupon.expiry_date and coupon.expiry_date < timezone.now().date():
+                        error_msg = 'Coupon has expired'
+                    elif coupon.used_count >= coupon.usage_limit:
+                        error_msg = 'Coupon usage limit has been reached'
+                    else:
+                        error_msg = 'Coupon is not valid'
+                    
+                    return Response(
+                        {'detail': error_msg, 'coupon_error': error_msg},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                coupon_used = coupon_code
+                
+            except Coupon.DoesNotExist:
+                return Response(
+                    {'detail': 'Coupon not found', 'coupon_error': 'This coupon code does not exist'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         
         # Get user if authenticated
         user = request.user if request.user and request.user.is_authenticated else None
@@ -99,7 +136,8 @@ class CheckoutAPIView(APIView):
                 'subtotal': data.get('subtotal', 0),
                 'discount': data.get('discount', 0),
                 'payment_amount': data.get('payment_amount', 0),
-                'payment_status': 'Pending'
+                'payment_status': 'Pending',
+                'coupon_code': coupon_used,
             }
             
             delivery_serializer = DeliverySerializer(data=delivery_data)
@@ -108,6 +146,14 @@ class CheckoutAPIView(APIView):
                 return Response(delivery_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
             delivery = delivery_serializer.save(order=order)
+            
+            # Apply coupon (increment usage count) if valid
+            if coupon_used:
+                try:
+                    coupon = Coupon.objects.get(code=coupon_used)
+                    coupon.apply_coupon(user)
+                except Coupon.DoesNotExist:
+                    pass
             
             # Clear user's cart if authenticated
             if user:
@@ -460,7 +506,7 @@ class CouponView(APIView):
         if code:
             coupon = Coupon.objects.filter(code=code).first()
             if coupon:
-                if coupon.apply_coupon(request.user):
+                if coupon.is_valid():
                   return Response({'status':'Success','amount':coupon.amount,'percentage':coupon.percentage})
                 else:
                     return Response({'status':'Failed','message':'Coupon has already been used.'})

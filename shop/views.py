@@ -498,3 +498,135 @@ class TaggedProductsView(APIView):
             products = Product.objects.all().order_by('-published_date')[:12]
         serializer = ProductSerializer(products,many=True,context={'request': request})
         return Response(serializer.data)
+
+
+class RecommendationsView(APIView):
+    # Complementary category mappings for cross-sells
+    COMPLEMENTARY_CATEGORIES = {
+        'laptop': ['mouse', 'keyboard', 'monitor', 'headphone', 'laptop bag', 'cooling pad'],
+        'smartphone': ['earphone', 'headphone', 'powerbank', 'mobile case', 'screen protector'],
+        'desktop': ['mouse', 'keyboard', 'monitor', 'speaker', 'webcam'],
+        'camera': ['memory card', 'camera bag', 'tripod', 'lens'],
+        'gaming': ['mouse', 'keyboard', 'headphone', 'gaming chair', 'controller'],
+        'tablet': ['stylus', 'tablet case', 'screen protector', 'keyboard'],
+    }
+    
+    def get(self, request):
+        product_id = request.query_params.get('product_id')
+        
+        if not product_id:
+            return Response({'error': 'product_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            current_product = Product.objects.get(product_id=product_id)
+        except Product.DoesNotExist:
+            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        recommendations = {
+            'upsells': [],
+            'complementary': [],
+            'trending': []
+        }
+        
+        # Get category name for complementary products
+        category_name = current_product.category.name.lower() if current_product.category else ''
+        
+        # 1. UPSELLING: Same category, 10-50% higher price, prioritize hot/trending
+        if current_product.category:
+            min_price = current_product.price * 1.1  # 10% higher
+            max_price = current_product.price * 1.5  # 50% higher
+            
+            upsell_candidates = Product.objects.filter(
+                category=current_product.category,
+                price__gte=min_price,
+                price__lte=max_price,
+                stock__gt=0
+            ).exclude(
+                product_id=product_id
+            )
+            
+            # Calculate priority score: hot=4, trending=3, featured=2, new=1
+            upsells = []
+            for product in upsell_candidates:
+                score = 0
+                if hasattr(product, 'hot') and product.hot:
+                    score += 4
+                if product.trending:
+                    score += 3
+                if product.featured:
+                    score += 2
+                if product.deal:
+                    score += 1
+                upsells.append((product, score))
+            
+            # Sort by priority score and take top 15
+            upsells.sort(key=lambda x: x[1], reverse=True)
+            recommendations['upsells'] = ProductSerializer(
+                [p[0] for p in upsells[:15]], 
+                many=True, 
+                context={'request': request}
+            ).data
+        
+        # 2. COMPLEMENTARY PRODUCTS: Cross-category recommendations
+        complementary_cats = []
+        for key, values in self.COMPLEMENTARY_CATEGORIES.items():
+            if key in category_name:
+                complementary_cats = values
+                break
+        
+        if complementary_cats:
+            # Get categories that match complementary names
+            matching_categories = Category.objects.filter(
+                name__iregex=r'(' + '|'.join(complementary_cats) + ')'
+            )
+            
+            if matching_categories.exists():
+                complementary_products = Product.objects.filter(
+                    category__in=matching_categories,
+                    stock__gt=0
+                ).exclude(
+                    product_id=product_id
+                )
+                
+                # Calculate priority scores
+                comps = []
+                for product in complementary_products:
+                    score = 0
+                    if hasattr(product, 'hot') and product.hot:
+                        score += 4
+                    if product.trending:
+                        score += 3
+                    if product.featured:
+                        score += 2
+                    if product.deal:
+                        score += 1
+                    comps.append((product, score))
+                
+                # Sort by priority and take top 15
+                comps.sort(key=lambda x: x[1], reverse=True)
+                print(comps)
+                recommendations['complementary'] = ProductSerializer(
+                    [p[0] for p in comps[:15]], 
+                    many=True, 
+                    context={'request': request}
+                ).data
+        
+        # 3. FALLBACK: Trending/Hot products if not enough recommendations
+        total_recs = len(recommendations['upsells']) + len(recommendations['complementary'])
+        if total_recs < 10:
+            needed = 15 - total_recs
+            trending_products = Product.objects.filter(
+                stock__gt=0
+            ).filter(
+                trending=True
+            ).exclude(
+                product_id=product_id
+            ).order_by('-published_date')[:needed]
+            
+            recommendations['trending'] = ProductSerializer(
+                trending_products, 
+                many=True, 
+                context={'request': request}
+            ).data
+        
+        return Response(recommendations)

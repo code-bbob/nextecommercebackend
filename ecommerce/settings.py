@@ -15,8 +15,9 @@ import os
 from datetime import timedelta
 import dotenv
 
-
-dotenv.load_dotenv()
+# Load .env file from backend directory
+ENV_PATH = os.path.join(os.path.dirname(__file__), '..', '.env')
+dotenv.load_dotenv(ENV_PATH)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -246,8 +247,10 @@ CKEDITOR_CONFIGS = {
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Stripe Configuration
+STRIPE_PUBLIC_KEY = os.environ.get('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
 
 # Tell django-storages to use the S3Boto3 backend:

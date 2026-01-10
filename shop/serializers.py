@@ -89,7 +89,7 @@ class GetProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         # fields = '__all__'
-        fields = ['product_id','name','category','price','old_price', 'before_deal_price','stock','images','ratings']
+        fields = ['product_id','name','category','price','old_price', 'before_deal_price','stock','images','ratings', 'auction', 'auction_start_time', 'base_price']
 
     def get_ratings(self,obj):
         request = self.context.get('request')

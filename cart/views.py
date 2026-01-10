@@ -13,6 +13,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.utils.html import strip_tags
 from .tasks import send_order_email  # Import the Celery task
 from django.utils import timezone
+from django.db import transaction
 
 
 class OrderAPIView(APIView):
@@ -104,62 +105,97 @@ class CheckoutAPIView(APIView):
         user = request.user if request.user and request.user.is_authenticated else None
         
         try:
-            # Create order
-            order = Order.objects.create(user=user, status='Placed')
-            
-            # Create order items from cart items
-            for item in cart_items_data:
-                try:
-                    product = Product.objects.get(product_id=item.get('product_id'))
-                    OrderItem.objects.create(
-                        order=order,
-                        product=product,
-                        quantity=item.get('quantity', 1)
-                    )
-                except Product.DoesNotExist:
+            # Use atomic transaction to ensure data consistency
+            with transaction.atomic():
+                # First pass: Validate prices and auction status for all items
+                for item in cart_items_data:
+                    try:
+                        product = Product.objects.select_for_update().get(product_id=item.get('product_id'))
+                        frontend_price = item.get('price', 0)
+                        listed_price = product.price
+                        
+                        # Check if price matches
+                        if frontend_price != listed_price:
+                            # Price mismatch detected
+                            if product.auction:
+                                # If auction is true, set it to false
+                                product.auction = False
+                                product.save()
+                            else:
+                                # If auction is false, cancel the entire checkout
+                                return Response(
+                                    {
+                                        'detail': 'Price mismatch detected',
+                                        'error': f'Product {product.name} price mismatch. Expected {listed_price}, got {frontend_price}',
+                                        'product_id': item.get('product_id'),
+                                        'expected_price': listed_price,
+                                        'received_price': frontend_price
+                                    },
+                                    status=status.HTTP_400_BAD_REQUEST
+                                )
+                    except Product.DoesNotExist:
+                        return Response(
+                            {'detail': f'Product {item.get("product_id")} not found'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                
+                # Create order
+                order = Order.objects.create(user=user, status='Placed')
+                
+                # Create order items from cart items
+                for item in cart_items_data:
+                    try:
+                        product = Product.objects.get(product_id=item.get('product_id'))
+                        OrderItem.objects.create(
+                            order=order,
+                            product=product,
+                            quantity=item.get('quantity', 1),
+                            price=item.get('price', product.price)  # Store price to allow auction + full price items
+                        )
+                    except Product.DoesNotExist:
+                        order.delete()
+                        return Response({'detail': f'Product {item.get("product_id")} not found'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Create delivery info
+                delivery_data = {
+                    'order': order.id,
+                    'phone_number': data.get('phone_number'),
+                    'first_name': data.get('first_name'),
+                    'last_name': data.get('last_name'),
+                    'email': data.get('email', ''),
+                    'shipping_address': data.get('shipping_address'),
+                    'city': data.get('city'),
+                    'municipality': data.get('municipality'),
+                    'payment_method': data.get('payment_method', 'COD'),
+                    'shipping_method': data.get('shipping_method'),
+                    'shipping_cost': data.get('shipping_cost', 0),
+                    'subtotal': data.get('subtotal', 0),
+                    'discount': data.get('discount', 0),
+                    'payment_amount': data.get('payment_amount', 0),
+                    'payment_status': 'Pending',
+                    'coupon_code': coupon_used,
+                }
+                
+                delivery_serializer = DeliverySerializer(data=delivery_data)
+                if not delivery_serializer.is_valid():
                     order.delete()
-                    return Response({'detail': f'Product {item.get("product_id")} not found'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Create delivery info
-            delivery_data = {
-                'order': order.id,
-                'phone_number': data.get('phone_number'),
-                'first_name': data.get('first_name'),
-                'last_name': data.get('last_name'),
-                'email': data.get('email', ''),
-                'shipping_address': data.get('shipping_address'),
-                'city': data.get('city'),
-                'municipality': data.get('municipality'),
-                'payment_method': data.get('payment_method', 'COD'),
-                'shipping_method': data.get('shipping_method'),
-                'shipping_cost': data.get('shipping_cost', 0),
-                'subtotal': data.get('subtotal', 0),
-                'discount': data.get('discount', 0),
-                'payment_amount': data.get('payment_amount', 0),
-                'payment_status': 'Pending',
-                'coupon_code': coupon_used,
-            }
-            
-            delivery_serializer = DeliverySerializer(data=delivery_data)
-            if not delivery_serializer.is_valid():
-                order.delete()
-                return Response(delivery_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
-            delivery = delivery_serializer.save(order=order)
-            
-            # Apply coupon (increment usage count) if valid
-            if coupon_used:
-                try:
-                    coupon = Coupon.objects.get(code=coupon_used)
-                    coupon.apply_coupon(user)
-                except Coupon.DoesNotExist:
-                    pass
-            
-            # Clear user's cart if authenticated
-            if user:
-                Cart.objects.filter(user=user).delete()
-            
-            # Return order info with delivery
+                    return Response(delivery_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+                delivery = delivery_serializer.save(order=order)
+                
+                # Apply coupon (increment usage count) if valid
+                if coupon_used:
+                    try:
+                        coupon = Coupon.objects.get(code=coupon_used)
+                        coupon.apply_coupon(user)
+                    except Coupon.DoesNotExist:
+                        pass
+                
+                # Clear user's cart if authenticated
+                if user:
+                    Cart.objects.filter(user=user).delete()
+                
+            # Return order info with delivery (outside transaction to ensure consistency)
             order_serializer = OrderSerializer(order)
             return Response(order_serializer.data, status=status.HTTP_201_CREATED)
             
@@ -191,15 +227,22 @@ class DeliveryView(APIView):
 
             # Build HTML rows for each item
             item_rows = ""
+            total_items_price = 0
             for item in order_item_data:
                 product_name = item.get("product_name", "N/A")
                 product_id = item.get("product_id", "N/A")
                 quantity = item.get("quantity", 0)
+                price = item.get("price", 0)
+                total_price = item.get("total_price", 0)
+                total_items_price += total_price
+                
                 item_rows += f"""
                 <tr>
                     <td>{product_name}</td>
                     <td>{product_id}</td>
                     <td>{quantity}</td>
+                    <td>Rs. {price}</td>
+                    <td>Rs. {total_price}</td>
                 </tr>
                 """
             
@@ -278,9 +321,18 @@ class DeliveryView(APIView):
                 <div class="content">
                   <p>Hello,</p>
                   <p>A new order has been placed: <strong>{order}</strong>.</p>
+                  <p><strong>Order Items:</strong></p>
                   <table>
+                    <tr>
+                      <th>Product Name</th>
+                      <th>Product ID</th>
+                      <th>Quantity</th>
+                      <th>Unit Price</th>
+                      <th>Total Price</th>
+                    </tr>
                   {item_rows}
                   </table>
+                  <p><strong>Items Subtotal: Rs {total_items_price}</strong></p>
                   <p>Please deliver the order to the following address:</p>
                    <table>
                     <tr>

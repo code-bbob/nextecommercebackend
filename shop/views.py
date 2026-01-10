@@ -2,7 +2,8 @@ from django.shortcuts import render
 import re
 from urllib.parse import unquote
 from typing import Optional
-from .models import Product,Comment
+from datetime import date
+from .models import Product,Comment, PageStats
 from math import ceil
 from .serializers import ProductSerializer, CommentSerializer, ReplySerializer, RatingSerializer, SeriesSerializer, GetProductSerializer
 from rest_framework.response import Response
@@ -630,3 +631,29 @@ class RecommendationsView(APIView):
             ).data
         
         return Response(recommendations)
+class VisitView(APIView):
+    def get(self, request):
+        stats, created = PageStats.objects.get_or_create(pk=1)
+        # Reset visits if it's a new day
+        if stats.last_reset != date.today():
+            stats.visits = 0
+            stats.last_reset = date.today()
+            stats.save()
+        return Response({'visits': stats.visits})
+
+    def post(self, request):
+        stats, created = PageStats.objects.get_or_create(pk=1)
+        # Reset visits if it's a new day
+        if stats.last_reset != date.today():
+            stats.visits = 0
+            stats.last_reset = date.today()
+        stats.visits += 1
+        stats.save()
+        return Response({'visits': stats.visits})
+
+class AuctionProductView(generics.ListAPIView):
+    serializer_class = GetProductSerializer
+    pagination_class = CustomPagination
+    
+    def get_queryset(self):        
+        return Product.objects.filter(auction=True).order_by('auction_start_time')

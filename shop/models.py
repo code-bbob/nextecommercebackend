@@ -35,6 +35,9 @@ class Product(models.Model):
     trending = models.BooleanField(default=False)
     best_seller = models.BooleanField(default=False)
     featured = models.BooleanField(default=False)
+    auction = models.BooleanField(default=False)
+    auction_start_time = models.DateTimeField(null=True, blank=True)
+    base_price = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -202,3 +205,17 @@ def create_default_attributes(sender, instance, created, **kwargs):
                 attribute=predef.key,
                 value=predef.default_value or ''
             )
+
+class PageStats(models.Model):
+    visits = models.BigIntegerField(default=0)
+    last_reset = models.DateField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.pk and PageStats.objects.exists():
+        # if you'll not check for self.pk 
+        # then error will also raised in update of exists model
+            raise Exception('There is can be only one PageStats instance')
+        return super(PageStats, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Visits: {self.visits}"

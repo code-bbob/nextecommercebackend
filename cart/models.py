@@ -29,12 +29,15 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='order_items', on_delete=models.CASCADE)
     product = models.ForeignKey('shop.Product', related_name='order_items', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)  # Default to 1, but can be adjusted
+    price = models.PositiveIntegerField(default=0)  # Store price at time of order (auction vs full price)
 
     def __str__(self):
         return f"{self.quantity} x {self.product}"
 
     class Meta:
-        unique_together = ['order', 'product']
+        # Allow same product multiple times if at different prices (auction scenario)
+        # This lets auction price and full price items coexist in same order
+        unique_together = ['order', 'product', 'price']
 
 class Delivery(models.Model):
     order=models.OneToOneField(Order, related_name='delivery', on_delete=models.CASCADE)#yo rel name xai uta fields ma use hunxa serializers ko

@@ -7,9 +7,15 @@ class OrderItemSerializer(serializers.ModelSerializer):
     # product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())  # Adjust queryset based on your Product model
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_id = serializers.CharField(source='product.product_id', read_only=True)
+    total_price = serializers.SerializerMethodField()
+    
     class Meta:
         model = OrderItem
-        fields = ['id', 'product_name','product_id', 'quantity']
+        fields = ['id', 'product_name', 'product_id', 'quantity', 'price', 'total_price']
+    
+    def get_total_price(self, obj):
+        """Calculate total price for this item (price * quantity)"""
+        return obj.price * obj.quantity
 
 
 class DeliverySerializer(serializers.ModelSerializer):

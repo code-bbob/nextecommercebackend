@@ -253,30 +253,31 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
 
+
 # Tell django-storages to use the S3Boto3 backend:
 STORAGES = {
     "default": {
         "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {
-            "access_key": 'DO801PV3PZ7ZJQ8JKZZJ',
-            "secret_key": 'giHf/7mqvABSQhF1mXg0b9RVcNLDBCLgN0DNR91hNZM',
-            "bucket_name": 'digitech-ecommerce',
-            "endpoint_url": "https://blr1.digitaloceanspaces.com",
-            "location":'media',
+            "access_key": os.getenv('AWS_ACCESS_KEY_ID'),
+            "secret_key": os.getenv('AWS_SECRET_ACCESS_KEY'),
+            "bucket_name": os.getenv('AWS_STORAGE_BUCKET_NAME'),
+            "endpoint_url": os.getenv('AWS_S3_ENDPOINT_URL'),
+            "location":'media/',
             "default_acl": "public-read",
-            "custom_domain": 'digitech-ecommerce.blr1.digitaloceanspaces.com',
+            "custom_domain": os.getenv('AWS_S3_CUSTOM_DOMAIN'),
         }
     },
     "staticfiles": {
         "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {
-            "access_key": 'DO801PV3PZ7ZJQ8JKZZJ',
-            "secret_key": 'giHf/7mqvABSQhF1mXg0b9RVcNLDBCLgN0DNR91hNZM',
-            "bucket_name": 'digitech-ecommerce',
-            "endpoint_url": "https://blr1.digitaloceanspaces.com",
+            "access_key": os.getenv('AWS_ACCESS_KEY_ID'),
+            "secret_key": os.getenv('AWS_SECRET_ACCESS_KEY'),
+            "bucket_name": os.getenv('AWS_STORAGE_BUCKET_NAME'),
+            "endpoint_url": os.getenv('AWS_S3_ENDPOINT_URL'),
             "location":'static',
             "default_acl": "public-read",
-            "custom_domain": 'digitech-ecommerce.blr1.digitaloceanspaces.com',
+            "custom_domain": os.getenv('AWS_S3_CUSTOM_DOMAIN'),
         }
     },
 }
@@ -286,6 +287,8 @@ STORAGES = {
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
+
+
 
 
 # Celery settings

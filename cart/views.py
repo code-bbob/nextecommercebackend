@@ -146,6 +146,15 @@ class CheckoutAPIView(APIView):
                 for item in cart_items_data:
                     try:
                         product = Product.objects.get(product_id=item.get('product_id'))
+                        
+                        # Check if product is in stock
+                        if not product.in_stock:
+                            order.delete()
+                            return Response(
+                                {'detail': f'Product {product.name} is out of stock'},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+                        
                         OrderItem.objects.create(
                             order=order,
                             product=product,
@@ -414,6 +423,10 @@ class CartView(APIView):
             product = Product.objects.get(product_id=product_id)
         except Product.DoesNotExist:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if product is in stock
+        if not product.in_stock:
+            return Response({"error": "Product is out of stock"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Get quantity (default is 1)
         quantity = int(data.get('quantity', 1))
